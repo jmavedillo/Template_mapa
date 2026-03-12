@@ -1,190 +1,251 @@
-import L from 'leaflet';
 import './styles.css';
 
 const DEFAULT_PLACE = 'Madrid, Spain';
-const DEFAULT_THEME = 'Warm Coral';
-const DEFAULT_ZOOM = 13;
+const DEFAULT_THEME = 'Mono Light';
+const DEFAULT_DETAIL_LEVEL = 'Closer';
 
-const EXAMPLE_LOCATIONS = {
-  'Madrid, Spain': { lat: 40.4168, lon: -3.7038, zoom: 13 },
-  'Paris, France': { lat: 48.8566, lon: 2.3522, zoom: 13 },
+const DETAIL_LEVEL_ZOOM_OFFSET = {
+  Close: 0,
+  Closer: 1,
+  'Very Close': 2,
 };
 
-const THEME_CONFIG = {
-  'Soft Blue': {
-    tile: {
-      url: 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
-      options: {
-        subdomains: 'abcd',
-        maxZoom: 20,
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      },
-    },
-    cssVars: {
-      '--page-bg': '#edf3fa',
-      '--page-accent-a': '#f6f9fd',
-      '--page-accent-b': '#dde8f5',
-      '--poster-bg': '#f8fbff',
-      '--poster-border': '#c4d4e8',
-      '--frame-bg': '#f4f8fd',
-      '--frame-inner': '#e8f1fb',
-      '--frame-border': '#b8cde5',
-      '--text-main': '#1e2b3d',
-      '--text-muted': '#4b5f7a',
-      '--control-bg': '#fafdff',
-      '--control-border': '#b9cce2',
-      '--map-filter': 'saturate(1.1) contrast(1.18) brightness(1.03)',
-      '--marker-color': '#1c4f86',
-      '--attribution-bg': 'rgba(237, 246, 255, 0.72)',
-      '--attribution-color': '#274261',
+const EXAMPLE_LOCATIONS = {
+  'Madrid, Spain': { lat: 40.4168, lon: -3.7038, zoom: 15.2, class: 'place', type: 'city', addresstype: 'city' },
+  'Paris, France': { lat: 48.8566, lon: 2.3522, zoom: 15.2, class: 'place', type: 'city', addresstype: 'city' },
+};
+
+const BASE_CARTOGRAPHY = {
+  version: 8,
+  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  sources: {
+    openmaptiles: {
+      type: 'vector',
+      url: 'https://demotiles.maplibre.org/tiles/tiles.json',
     },
   },
-  'Warm Coral': {
-    tile: {
-      url: 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
-      options: {
-        subdomains: 'abcd',
-        maxZoom: 20,
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  layers: [
+    { id: 'background', type: 'background', paint: { 'background-color': '#f8f7f3' } },
+
+    // Water visibility and tone are controlled here.
+    {
+      id: 'water',
+      type: 'fill',
+      source: 'openmaptiles',
+      'source-layer': 'water',
+      paint: { 'fill-color': '#b6bcc4', 'fill-opacity': 1 },
+    },
+
+    // Building masses/footprints are controlled here.
+    {
+      id: 'buildings',
+      type: 'fill',
+      source: 'openmaptiles',
+      'source-layer': 'building',
+      minzoom: 13,
+      paint: { 'fill-color': '#d8d6d0', 'fill-opacity': 0.9 },
+    },
+    {
+      id: 'building-outline',
+      type: 'line',
+      source: 'openmaptiles',
+      'source-layer': 'building',
+      minzoom: 14,
+      paint: { 'line-color': '#c3c0b8', 'line-width': ['interpolate', ['linear'], ['zoom'], 14, 0.4, 17, 0.8] },
+    },
+
+    // Major road thickness and color are controlled here.
+    {
+      id: 'roads-major',
+      type: 'line',
+      source: 'openmaptiles',
+      'source-layer': 'transportation',
+      filter: [
+        'in',
+        ['get', 'class'],
+        ['literal', ['motorway', 'trunk', 'primary', 'secondary', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link']],
+      ],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#4f4f4f',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 1.4, 14, 2.8, 16, 4.2, 18, 6.2],
+        'line-opacity': 0.98,
       },
     },
-    cssVars: {
-      '--page-bg': '#f5ece6',
-      '--page-accent-a': '#fbf5f1',
-      '--page-accent-b': '#efd7cc',
-      '--poster-bg': '#fff8f2',
-      '--poster-border': '#dbc2b3',
-      '--frame-bg': '#fff7f0',
-      '--frame-inner': '#f7e6dc',
-      '--frame-border': '#d5b2a0',
-      '--text-main': '#3b2420',
-      '--text-muted': '#7a524a',
-      '--control-bg': '#fffcf8',
-      '--control-border': '#d4b9a9',
-      '--map-filter': 'sepia(0.28) saturate(1.35) hue-rotate(-12deg) contrast(1.17) brightness(1.03)',
-      '--marker-color': '#9d3f30',
-      '--attribution-bg': 'rgba(255, 246, 238, 0.74)',
-      '--attribution-color': '#5e342d',
+
+    // Secondary/local road visibility and thickness are controlled here.
+    {
+      id: 'roads-minor',
+      type: 'line',
+      source: 'openmaptiles',
+      'source-layer': 'transportation',
+      filter: [
+        'in',
+        ['get', 'class'],
+        ['literal', ['tertiary', 'tertiary_link', 'street', 'street_limited', 'service', 'minor', 'track']],
+      ],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#707070',
+        'line-width': ['interpolate', ['linear'], ['zoom'], 12, 0.8, 14, 1.6, 16, 2.8, 18, 4],
+        'line-opacity': 0.95,
+      },
     },
-  },
+  ],
+};
+
+const POSTER_THEMES = {
   'Mono Light': {
-    tile: {
-      url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      options: {
-        maxZoom: 19,
-        attribution: '&copy; OpenStreetMap contributors',
-      },
+    map: {
+      background: '#f5f4f1',
+      water: '#a9afb8',
+      building: '#d8d6d1',
+      buildingOutline: '#bbb8b1',
+      majorRoad: '#454545',
+      minorRoad: '#777777',
     },
     cssVars: {
-      '--page-bg': '#f0f0f0',
-      '--page-accent-a': '#ffffff',
-      '--page-accent-b': '#dddddd',
-      '--poster-bg': '#fafafa',
-      '--poster-border': '#c7c7c7',
-      '--frame-bg': '#ffffff',
-      '--frame-inner': '#efefef',
-      '--frame-border': '#b4b4b4',
+      '--page-bg': '#f1efeb',
+      '--poster-bg': '#fbfaf7',
+      '--poster-border': '#cdc9bf',
+      '--frame-bg': '#fffefb',
+      '--frame-inner': '#f3f1eb',
+      '--frame-border': '#c7c2b7',
       '--text-main': '#171717',
-      '--text-muted': '#4e4e4e',
-      '--control-bg': '#ffffff',
-      '--control-border': '#bdbdbd',
-      '--map-filter': 'grayscale(1) contrast(1.35) brightness(1.02)',
-      '--marker-color': '#111111',
-      '--attribution-bg': 'rgba(255, 255, 255, 0.75)',
-      '--attribution-color': '#2f2f2f',
+      '--text-muted': '#4f4f4f',
+      '--control-bg': '#fffefb',
+      '--control-border': '#bdb8ad',
+      '--marker-color': '#1f1f1f',
+      '--attribution-bg': 'rgba(255, 255, 255, 0.8)',
+      '--attribution-color': '#303030',
+    },
+  },
+  'Soft Blue': {
+    map: {
+      background: '#eef3f8',
+      water: '#94a9bc',
+      building: '#d7e0ea',
+      buildingOutline: '#b6c2cf',
+      majorRoad: '#33516d',
+      minorRoad: '#567492',
+    },
+    cssVars: {
+      '--page-bg': '#e8eff6',
+      '--poster-bg': '#f4f8fc',
+      '--poster-border': '#b8c7d6',
+      '--frame-bg': '#f7faff',
+      '--frame-inner': '#e7eef6',
+      '--frame-border': '#b6c4d4',
+      '--text-main': '#1c3045',
+      '--text-muted': '#4e657d',
+      '--control-bg': '#f8fbff',
+      '--control-border': '#afc0d1',
+      '--marker-color': '#1d4469',
+      '--attribution-bg': 'rgba(237, 245, 255, 0.82)',
+      '--attribution-color': '#234661',
     },
   },
   'Mono Dark': {
-    tile: {
-      url: 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png',
-      options: {
-        subdomains: 'abcd',
-        maxZoom: 20,
-        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      },
+    map: {
+      background: '#1a1d20',
+      water: '#6d747d',
+      building: '#2f353c',
+      buildingOutline: '#454b53',
+      majorRoad: '#f2f2f2',
+      minorRoad: '#b8bec4',
     },
     cssVars: {
-      '--page-bg': '#111215',
-      '--page-accent-a': '#1b1d23',
-      '--page-accent-b': '#181a1e',
-      '--poster-bg': '#1a1c20',
-      '--poster-border': '#444954',
-      '--frame-bg': '#1f2228',
-      '--frame-inner': '#15181d',
-      '--frame-border': '#535965',
-      '--text-main': '#f1f1f1',
-      '--text-muted': '#c4c7ce',
-      '--control-bg': '#20242b',
-      '--control-border': '#4f5560',
-      '--map-filter': 'grayscale(1) contrast(1.5) brightness(1.07)',
-      '--marker-color': '#f8f8f8',
-      '--attribution-bg': 'rgba(20, 22, 26, 0.7)',
-      '--attribution-color': '#d6dae2',
+      '--page-bg': '#111316',
+      '--poster-bg': '#1a1d22',
+      '--poster-border': '#505862',
+      '--frame-bg': '#1f2328',
+      '--frame-inner': '#16191d',
+      '--frame-border': '#5a616b',
+      '--text-main': '#f2f4f5',
+      '--text-muted': '#c4cad2',
+      '--control-bg': '#23282f',
+      '--control-border': '#5a616c',
+      '--marker-color': '#ffffff',
+      '--attribution-bg': 'rgba(26, 30, 36, 0.82)',
+      '--attribution-color': '#d6dce3',
     },
   },
 };
 
 const placeInput = document.querySelector('#place-input');
 const themeSelect = document.querySelector('#theme-select');
+const detailSelect = document.querySelector('#detail-select');
 const updateBtn = document.querySelector('#update-btn');
 const posterTitle = document.querySelector('#poster-title');
 
 let map;
 let centerMarker;
-let activeTileLayer;
 
-/**
- * Map adapter: isolated so swapping Leaflet -> MapLibre later is easy.
- * TODO(MapLibre): replace this function with a MapLibre map initializer.
- */
-function initializeMapEngine(containerId, initialView, themeName = DEFAULT_THEME) {
-  const mapInstance = L.map(containerId, {
-    zoomControl: false,
+function initializeMapEngine(containerId, initialView) {
+  return new maplibregl.Map({
+    container: containerId,
+    style: BASE_CARTOGRAPHY,
+    center: [initialView.lon, initialView.lat],
+    zoom: initialView.zoom,
     attributionControl: true,
-  }).setView([initialView.lat, initialView.lon], initialView.zoom ?? DEFAULT_ZOOM);
-
-  activeTileLayer = buildTileLayer(themeName).addTo(mapInstance);
-  return mapInstance;
-}
-
-function buildTileLayer(themeName) {
-  const theme = THEME_CONFIG[themeName] ?? THEME_CONFIG[DEFAULT_THEME];
-  return L.tileLayer(theme.tile.url, theme.tile.options);
+    dragRotate: false,
+    touchZoomRotate: false,
+  });
 }
 
 function applyPosterTheme(themeName) {
-  const theme = THEME_CONFIG[themeName] ?? THEME_CONFIG[DEFAULT_THEME];
+  const theme = POSTER_THEMES[themeName] ?? POSTER_THEMES[DEFAULT_THEME];
 
   Object.entries(theme.cssVars).forEach(([key, value]) => {
     document.documentElement.style.setProperty(key, value);
   });
 
-  if (map) {
-    const nextTileLayer = buildTileLayer(themeName);
-    if (activeTileLayer) {
-      map.removeLayer(activeTileLayer);
-    }
-    activeTileLayer = nextTileLayer.addTo(map);
+  if (!map || !map.isStyleLoaded()) {
+    return;
   }
 
-  // TODO(MapLibre): when moving to vector tiles, replace CSS filter + tile swap
-  // with fully custom style layers for roads, water, and land colors.
+  map.setPaintProperty('background', 'background-color', theme.map.background);
+  map.setPaintProperty('water', 'fill-color', theme.map.water);
+  map.setPaintProperty('buildings', 'fill-color', theme.map.building);
+  map.setPaintProperty('building-outline', 'line-color', theme.map.buildingOutline);
+  map.setPaintProperty('roads-major', 'line-color', theme.map.majorRoad);
+  map.setPaintProperty('roads-minor', 'line-color', theme.map.minorRoad);
 }
 
 function createCenterMarker(lat, lon) {
-  const icon = L.divIcon({
-    className: 'heart-marker',
-    html: '❤',
-    iconSize: [56, 56],
-    iconAnchor: [28, 28],
-  });
-
-  return L.marker([lat, lon], { icon, keyboard: false, interactive: false });
+  const markerEl = document.createElement('div');
+  markerEl.className = 'heart-marker';
+  markerEl.textContent = '❤';
+  return new maplibregl.Marker({ element: markerEl, anchor: 'center' }).setLngLat([lon, lat]);
 }
 
-/**
- * TODO(Geocoding): swap Nominatim for a paid geocoding provider when needed.
- */
+function chooseZoomForPlace(location, detailLevel) {
+  // Biased toward urban detail, not broad regional framing.
+  let baseZoom = 14.8;
+
+  const addresstype = location.addresstype ?? '';
+  const placeClass = location.class ?? '';
+  const placeType = location.type ?? '';
+
+  if (['country', 'state', 'region'].includes(addresstype) || ['country', 'state'].includes(placeType)) {
+    baseZoom = 12.2;
+  } else if (['city', 'town'].includes(addresstype) || ['city', 'town', 'administrative'].includes(placeType)) {
+    baseZoom = 14.8;
+  } else if (['suburb', 'neighbourhood', 'quarter'].includes(addresstype) || ['suburb', 'neighbourhood'].includes(placeType)) {
+    baseZoom = 15.6;
+  } else if (placeClass === 'place' && placeType === 'village') {
+    baseZoom = 15;
+  } else if (
+    ['amenity', 'tourism', 'shop', 'leisure', 'building', 'highway'].includes(placeClass) ||
+    ['house', 'road'].includes(addresstype)
+  ) {
+    baseZoom = 16.7;
+  }
+
+  const offset = DETAIL_LEVEL_ZOOM_OFFSET[detailLevel] ?? DETAIL_LEVEL_ZOOM_OFFSET[DEFAULT_DETAIL_LEVEL];
+  return Math.max(12, Math.min(18.8, baseZoom + offset));
+}
+
 async function geocodePlace(query) {
   if (EXAMPLE_LOCATIONS[query]) {
     return EXAMPLE_LOCATIONS[query];
@@ -194,6 +255,7 @@ async function geocodePlace(query) {
   endpoint.searchParams.set('q', query);
   endpoint.searchParams.set('format', 'jsonv2');
   endpoint.searchParams.set('limit', '1');
+  endpoint.searchParams.set('addressdetails', '1');
 
   const response = await fetch(endpoint, {
     headers: {
@@ -208,20 +270,16 @@ async function geocodePlace(query) {
   const data = await response.json();
 
   if (!data.length) {
-    throw new Error('No place found. Try a larger city name.');
+    throw new Error('No place found. Try a district, neighborhood, or address.');
   }
 
   return {
+    ...data[0],
     lat: Number(data[0].lat),
     lon: Number(data[0].lon),
-    zoom: DEFAULT_ZOOM,
   };
 }
 
-/**
- * Encapsulated location update logic.
- * TODO(Export): integrate high-resolution poster export from this update state.
- */
 async function updatePosterLocation(query) {
   const target = query.trim() || DEFAULT_PLACE;
 
@@ -230,10 +288,12 @@ async function updatePosterLocation(query) {
 
   try {
     const location = await geocodePlace(target);
+    const zoom = chooseZoomForPlace(location, detailSelect.value);
 
-    map.setView([location.lat, location.lon], location.zoom ?? DEFAULT_ZOOM, {
-      animate: true,
-      duration: 0.8,
+    map.easeTo({
+      center: [location.lon, location.lat],
+      zoom,
+      duration: 900,
     });
 
     if (centerMarker) {
@@ -254,13 +314,21 @@ async function updatePosterLocation(query) {
 function boot() {
   const initialView = EXAMPLE_LOCATIONS[DEFAULT_PLACE];
   themeSelect.value = DEFAULT_THEME;
-  applyPosterTheme(DEFAULT_THEME);
+  detailSelect.value = DEFAULT_DETAIL_LEVEL;
 
-  map = initializeMapEngine('map', initialView, DEFAULT_THEME);
-  centerMarker = createCenterMarker(initialView.lat, initialView.lon).addTo(map);
+  map = initializeMapEngine('map', initialView);
+
+  map.on('load', () => {
+    applyPosterTheme(DEFAULT_THEME);
+    centerMarker = createCenterMarker(initialView.lat, initialView.lon).addTo(map);
+  });
 
   themeSelect.addEventListener('change', (event) => {
     applyPosterTheme(event.target.value);
+  });
+
+  detailSelect.addEventListener('change', () => {
+    updatePosterLocation(placeInput.value);
   });
 
   updateBtn.addEventListener('click', () => updatePosterLocation(placeInput.value));

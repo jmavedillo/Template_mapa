@@ -1,6 +1,6 @@
-# Minimal map poster prototype
+# Urban map poster prototype
 
-A tiny Vite + vanilla JavaScript prototype for a premium-looking, minimalist map poster.
+A Vite + vanilla JavaScript prototype focused on **high-legibility urban cartography first**, then minimal poster theming.
 
 ## Run locally
 
@@ -11,31 +11,25 @@ npm run dev
 
 ## Files
 
-- `index.html` – layout (controls + poster shell)
-- `styles.css` – poster styling + theme-driven map treatment
-- `main.js` – Leaflet map setup, theme switching, marker, and location update logic
+- `index.html` – controls + poster shell
+- `styles.css` – poster layout and UI chrome
+- `main.js` – MapLibre cartographic base, theme overrides, geocoding, zoom heuristics
 
-## Where to tweak quickly
+## Cartographic architecture
 
-- **Poster size:** `styles.css` → `--poster-width`, `--poster-ratio`
-- **Frame thickness:** `styles.css` → `--frame-thickness`
-- **Marker size:** `styles.css` → `--marker-size` and `main.js` → `iconSize`
-- **Map zoom:** `main.js` → `DEFAULT_ZOOM` and per-location zoom values
-- **Theme definitions:** `main.js` → `THEME_CONFIG`
+- **Base map style (`BASE_CARTOGRAPHY`)** controls map structure and readability:
+  - road hierarchy layers (major/minor) and line thickness
+  - building fills + outlines
+  - water shapes
+  - clean background
+- **Poster themes (`POSTER_THEMES`)** only adjust colors for the same structural map base.
 
-## Adding more themes
+## Zoom behavior
 
-1. Add a new entry in `THEME_CONFIG` inside `main.js`.
-2. Define both:
-   - `tile` (`url` + `options`) for the Leaflet base map source.
-   - `cssVars` for poster/page/frame/map filter/marker colors.
-3. Add the same theme name as an `<option>` in `index.html` (`#theme-select`).
-4. Keep contrast readable first; only use light CSS filtering on tiles if roads and water remain clear.
+`chooseZoomForPlace()` selects zoom by place type and addresstype from Nominatim, then applies the user-selected detail level:
 
-## Notes for future evolution
+- `Close`
+- `Closer`
+- `Very Close`
 
-In `main.js` there are TODO markers showing where to:
-
-- replace Leaflet with MapLibre for full vector cartographic control
-- replace free geocoding with a paid provider
-- add high-resolution export flow
+The logic is intentionally biased to neighborhood/city-detail zooms for poster legibility.
