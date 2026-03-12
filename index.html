@@ -3,27 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Minimal Map Poster Prototype</title>
-    <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
+    <title>Urban Map Poster Prototype</title>
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   </head>
   <body>
     <main class="page">
       <section class="controls" aria-label="Map controls">
         <label class="control-label" for="place-input">Place</label>
-        <input id="place-input" type="text" value="Madrid, Spain" placeholder="Type a city or place" />
+        <input id="place-input" type="text" value="Madrid, Spain" placeholder="Type a city, district, or address" />
 
         <label class="control-label" for="theme-select">Style</label>
         <select id="theme-select" aria-label="Poster style selector">
-          <option value="Warm Coral">Warm Coral</option>
-          <option value="Soft Blue">Soft Blue</option>
           <option value="Mono Light">Mono Light</option>
+          <option value="Soft Blue">Soft Blue</option>
           <option value="Mono Dark">Mono Dark</option>
+        </select>
+
+        <label class="control-label" for="detail-select">Detail</label>
+        <select id="detail-select" aria-label="Map detail level selector">
+          <option value="Close">Close</option>
+          <option value="Closer">Closer</option>
+          <option value="Very Close">Very Close</option>
         </select>
 
         <button id="update-btn" type="button">Update poster</button>
       </section>
 
-      <article class="poster" aria-label="Minimal map poster preview">
+      <article class="poster" aria-label="Urban map poster preview">
         <div class="poster-frame">
           <div id="map" class="poster-map" role="img" aria-label="Map preview"></div>
         </div>
