@@ -1,0 +1,151 @@
+@import 'leaflet/dist/leaflet.css';
+
+:root {
+  /* Quick tuning tokens */
+  --poster-width: min(72vw, 760px);
+  --poster-ratio: 3 / 4;
+  --frame-thickness: clamp(18px, 3vw, 28px);
+  --marker-size: 54px;
+
+  --paper: #f3f1ec;
+  --ink: #171717;
+  --muted-ink: #585858;
+  --frame: #fff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  font-family: 'Cormorant Garamond', 'Iowan Old Style', 'Times New Roman', serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 10% 10%, #f8f6f2 0%, transparent 28%),
+    radial-gradient(circle at 95% 85%, #ebe7de 0%, transparent 35%),
+    var(--paper);
+}
+
+.page {
+  min-height: inherit;
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  padding: clamp(1.2rem, 3vw, 2.6rem);
+}
+
+.controls {
+  width: var(--poster-width);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.control-label {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: var(--muted-ink);
+}
+
+#place-input,
+#update-btn {
+  border: 1px solid #d8d1c2;
+  background: #fffdf9;
+  color: var(--ink);
+  height: 2.55rem;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+#place-input {
+  padding: 0 0.75rem;
+}
+
+#update-btn {
+  padding: 0 1.2rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.poster {
+  width: var(--poster-width);
+  aspect-ratio: var(--poster-ratio);
+  background: #fdfcf9;
+  border: 1px solid #ddd7c9;
+  box-shadow:
+    0 10px 26px rgba(32, 24, 12, 0.08),
+    0 2px 8px rgba(32, 24, 12, 0.06);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: clamp(1.4rem, 3vw, 2.5rem);
+}
+
+.poster-frame {
+  background: var(--frame);
+  box-shadow: inset 0 0 0 var(--frame-thickness) #fbfbfb;
+  border: 1px solid #e9e9e9;
+  padding: var(--frame-thickness);
+}
+
+.poster-map {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  filter: grayscale(1) contrast(1.08) brightness(1.05);
+}
+
+.poster-title {
+  margin: clamp(0.9rem, 2vw, 1.2rem) 0 0;
+  text-align: center;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.heart-marker {
+  width: var(--marker-size);
+  height: var(--marker-size);
+  display: grid;
+  place-items: center;
+  color: #111;
+  font-size: calc(var(--marker-size) * 0.7);
+  line-height: 1;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-control-container {
+  display: none; /* no map controls for prototype cleanliness */
+}
+
+.leaflet-attribution-flag {
+  display: none;
+}
+
+.leaflet-container .leaflet-control-attribution {
+  display: block;
+  font-size: 0.56rem;
+  letter-spacing: 0.03em;
+  opacity: 0.58;
+  background: rgba(255, 255, 255, 0.55);
+  color: #3d3d3d;
+}
+
+@media (max-width: 760px) {
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  #update-btn {
+    width: 100%;
+  }
+
+  .poster {
+    width: min(95vw, 560px);
+  }
+}

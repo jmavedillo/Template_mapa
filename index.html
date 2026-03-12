@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minimal Map Poster Prototype</title>
+    <link rel="preconnect" href="https://tile.openstreetmap.org" crossorigin />
+  </head>
+  <body>
+    <main class="page">
+      <section class="controls" aria-label="Map controls">
+        <label class="control-label" for="place-input">Place</label>
+        <input id="place-input" type="text" value="Madrid, Spain" placeholder="Type a city or place" />
+        <button id="update-btn" type="button">Update poster</button>
+      </section>
+
+      <article class="poster" aria-label="Minimal map poster preview">
+        <div class="poster-frame">
+          <div id="map" class="poster-map" role="img" aria-label="Map preview"></div>
+        </div>
+        <h1 id="poster-title" class="poster-title">Madrid, Spain</h1>
+      </article>
+    </main>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>
