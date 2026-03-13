@@ -13,11 +13,11 @@ const DETAIL_LEVEL_ZOOM_OFFSET = {
 
 const TEMPLATE_PRESETS = {
   fullExample: {
+    template: 'map_message_v1',
     mapQuery: 'Puerta del Sol, Madrid',
     song: {
       title: 'DTMF',
       artist: 'Bad Bunny',
-      mood: 'nocturnal downtown energy',
       coverUrl: 'https://picsum.photos/seed/album-cover/120',
     },
     place: {
@@ -37,6 +37,7 @@ const TEMPLATE_PRESETS = {
     },
   },
   noSong: {
+    template: 'map_message_v1',
     mapQuery: 'Puerta del Sol, Madrid',
     place: {
       title: 'Puerta del Sol',
@@ -55,11 +56,11 @@ const TEMPLATE_PRESETS = {
     },
   },
   noTime: {
+    template: 'map_message_v1',
     mapQuery: 'Puerta del Sol, Madrid',
     song: {
       title: 'DTMF',
       artist: 'Bad Bunny',
-      mood: 'nocturnal downtown energy',
       coverUrl: 'https://picsum.photos/seed/album-cover/120',
     },
     place: {
@@ -75,11 +76,11 @@ const TEMPLATE_PRESETS = {
     },
   },
   noPlaceSubtitle: {
+    template: 'map_message_v1',
     mapQuery: 'Puerta del Sol, Madrid',
     song: {
       title: 'DTMF',
       artist: 'Bad Bunny',
-      mood: 'nocturnal downtown energy',
       coverUrl: 'https://picsum.photos/seed/album-cover/120',
     },
     place: {
@@ -98,11 +99,11 @@ const TEMPLATE_PRESETS = {
     },
   },
   shortMessage: {
+    template: 'map_message_v1',
     mapQuery: 'Puerta del Sol, Madrid',
     song: {
       title: 'DTMF',
       artist: 'Bad Bunny',
-      mood: 'nocturnal downtown energy',
       coverUrl: 'https://picsum.photos/seed/album-cover/120',
     },
     place: {
@@ -121,11 +122,11 @@ const TEMPLATE_PRESETS = {
     },
   },
   longerMessage: {
+    template: 'map_message_v1',
     mapQuery: 'Puerta del Sol, Madrid',
     song: {
       title: 'DTMF',
       artist: 'Bad Bunny',
-      mood: 'nocturnal downtown energy',
       coverUrl: 'https://picsum.photos/seed/album-cover/120',
     },
     place: {
@@ -162,7 +163,6 @@ const updateBtn = document.querySelector('#update-btn');
 const songCard = document.querySelector('#song-card');
 const songCover = document.querySelector('#song-cover');
 const songTitle = document.querySelector('#song-title');
-const songMood = document.querySelector('#song-mood');
 const placeCard = document.querySelector('#place-card');
 const placeTitle = document.querySelector('#place-title');
 const placeSubtitle = document.querySelector('#place-subtitle');
@@ -189,12 +189,10 @@ function setText(element, value) {
 
 function renderTemplate(data) {
   const songLine = [data.song?.title, data.song?.artist].filter(hasText).join(' · ');
-  const songExists = hasText(songLine) || hasText(data.song?.mood) || hasText(data.song?.coverUrl);
+  const songExists = hasText(songLine) || hasText(data.song?.coverUrl);
   songCard.hidden = !songExists;
   if (songExists) {
     setText(songTitle, songLine);
-    setText(songMood, hasText(data.song?.mood) ? `Mood: ${data.song.mood.trim()}` : '');
-
     if (hasText(data.song?.coverUrl)) {
       songCover.src = data.song.coverUrl.trim();
       songCover.hidden = false;
