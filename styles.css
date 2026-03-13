@@ -239,39 +239,65 @@ body {
   background: #f4f4f1;
   display: grid;
   grid-template-columns: 1fr auto;
-  align-items: end;
-  gap: 0.9rem;
-  padding: clamp(0.95rem, 1.8vw, 1.25rem) clamp(1rem, 2vw, 1.35rem);
+  align-items: start;
+  gap: 0.55rem;
+  padding: clamp(0.56rem, 1.05vw, 0.72rem) clamp(1rem, 2vw, 1.35rem) clamp(0.46rem, 0.9vw, 0.62rem);
 }
 
-.message-band__text {
-  margin: 0;
+.message-band__copy {
   text-align: left;
-  font-size: clamp(1.08rem, 2.2vw, 1.4rem);
-  line-height: 1.2;
-  font-weight: 700;
+  display: grid;
+  align-content: start;
+  gap: clamp(0.14rem, 0.45vw, 0.32rem);
+  max-width: 38ch;
+}
+
+.message-band__support,
+.message-band__hero {
+  margin: 0;
+  text-wrap: balance;
+}
+
+.message-band__support {
+  font-size: clamp(0.84rem, 1.55vw, 1.08rem);
+  line-height: 1.08;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #434343;
+}
+
+.message-band__hero {
+  font-family: 'Arial Black', Impact, Haettenschweiler, 'Segoe UI Black', sans-serif;
+  font-size: clamp(2.1rem, 5.5vw, 3.35rem);
+  line-height: 0.88;
+  font-weight: 900;
   letter-spacing: 0.01em;
-  color: #131313;
+  text-transform: uppercase;
+  color: #0f0f0f;
 }
 
 .message-band__meta {
   display: grid;
   justify-items: end;
-  gap: 0.18rem;
-  color: #4f4f4f;
-  font-size: 0.7rem;
+  align-self: start;
+  gap: 0.1rem;
+  color: #444444;
+  font-size: 0.64rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  padding-top: 0.08rem;
 }
 
 .message-band__time {
-  opacity: 0.82;
+  opacity: 0.85;
 }
 
 .message-band__ticks {
-  font-size: 0.95rem;
-  letter-spacing: -0.12em;
-  color: #3f3f3f;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  color: #202020;
 }
 
 @media (max-width: 980px) {
