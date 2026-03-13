@@ -2,22 +2,14 @@ import './styles.css';
 import maplibregl from 'https://esm.sh/maplibre-gl@4.7.1';
 
 const DEFAULT_PLACE = 'Madrid, Spain';
-const DEFAULT_STYLE = 'Liberty';
+const DEFAULT_STYLE = 'Monochrome Editorial';
 const DEFAULT_DETAIL_LEVEL = 'Closer';
+const BASE_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
 
 const DETAIL_LEVEL_ZOOM_OFFSET = {
   Close: -0.35,
   Closer: 0.45,
   'Very Close': 1.1,
-};
-
-const OPENFREEMAP_STYLES = {
-  Liberty: 'https://tiles.openfreemap.org/styles/liberty',
-  Positron: 'https://tiles.openfreemap.org/styles/positron',
-  Bright: 'https://tiles.openfreemap.org/styles/bright',
-  // Future custom style insertion point:
-  // Replace a hosted OpenFreeMap URL above with your own Maputnik-edited style JSON URL.
-  // Example: 'Custom': 'https://your-domain.example.com/styles/poster-style.json',
 };
 
 const EXAMPLE_LOCATIONS = {
@@ -30,9 +22,12 @@ const styleSelect = document.querySelector('#theme-select');
 const detailSelect = document.querySelector('#detail-select');
 const updateBtn = document.querySelector('#update-btn');
 const posterTitle = document.querySelector('#poster-title');
+const posterSubtitle = document.querySelector('#poster-subtitle');
+const posterCoordinates = document.querySelector('#poster-coordinates');
 
 let map;
 let centerMarker;
+let cachedEditorialStyle;
 
 function chooseZoomForPlace(result, detailLevel) {
   const broadAreaTypes = new Set(['country', 'state', 'region', 'county']);
@@ -72,16 +67,6 @@ function chooseZoomForPlace(result, detailLevel) {
     }
   }
 
-  if (baseZoom <= 13.4) {
-    console.debug('[Geocode] Broad result received; forcing closer urban zoom.', {
-      queryType: type,
-      class: klass,
-      placeRank: result.place_rank,
-      bbox: result.boundingbox,
-      chosenBaseZoom: baseZoom,
-    });
-  }
-
   const offset = DETAIL_LEVEL_ZOOM_OFFSET[detailLevel] ?? DETAIL_LEVEL_ZOOM_OFFSET[DEFAULT_DETAIL_LEVEL];
   return Math.max(13, Math.min(19, baseZoom + offset));
 }
@@ -97,6 +82,141 @@ function ensureHeartMarker(lngLat) {
   }
 
   centerMarker.setLngLat(lngLat);
+}
+
+function toCoordinateLabel(lat, lon) {
+  const northSouth = lat >= 0 ? 'N' : 'S';
+  const eastWest = lon >= 0 ? 'E' : 'W';
+  return `${Math.abs(lat).toFixed(4)}°${northSouth} / ${Math.abs(lon).toFixed(4)}°${eastWest}`;
+}
+
+function formatPosterMeta(result, fallbackInput) {
+  const address = result.address || {};
+  const titleCandidate =
+    address.city ||
+    address.town ||
+    address.village ||
+    address.municipality ||
+    address.county ||
+    result.name ||
+    fallbackInput;
+
+  const countryCandidate = address.country || '';
+  return {
+    title: titleCandidate.toUpperCase(),
+    subtitle: countryCandidate.toUpperCase(),
+    coordinates: toCoordinateLabel(Number(result.lat), Number(result.lon)),
+  };
+}
+
+function classifyRoadWeight(layerId) {
+  if (/(motorway|trunk|primary|highway|arterial|major)/i.test(layerId)) return 'major';
+  if (/(secondary|tertiary)/i.test(layerId)) return 'secondary';
+  return 'minor';
+}
+
+function restyleLayer(layer) {
+  const id = layer.id || '';
+
+  if (layer.type === 'symbol') {
+    return { ...layer, layout: { ...(layer.layout || {}), visibility: 'none' } };
+  }
+
+  if (layer.type === 'circle' || layer.type === 'heatmap' || layer.type === 'fill-extrusion') {
+    return { ...layer, layout: { ...(layer.layout || {}), visibility: 'none' } };
+  }
+
+  if (layer.type === 'background') {
+    return { ...layer, paint: { ...(layer.paint || {}), 'background-color': '#f3f3f0' } };
+  }
+
+  if (layer.type === 'fill') {
+    if (/(water|ocean|river|lake|reservoir)/i.test(id)) {
+      return {
+        ...layer,
+        paint: { ...(layer.paint || {}), 'fill-color': '#e7e7e3', 'fill-opacity': 0.9 },
+      };
+    }
+
+    if (/(building)/i.test(id)) {
+      return {
+        ...layer,
+        paint: { ...(layer.paint || {}), 'fill-color': '#d9d9d5', 'fill-opacity': 0.45 },
+      };
+    }
+
+    if (/(park|grass|wood|forest|landcover|landuse|cemetery|pitch)/i.test(id)) {
+      return {
+        ...layer,
+        paint: { ...(layer.paint || {}), 'fill-color': '#eeeeeb', 'fill-opacity': 0.8 },
+      };
+    }
+
+    return {
+      ...layer,
+      paint: { ...(layer.paint || {}), 'fill-color': '#f0f0ec', 'fill-opacity': 0.85 },
+    };
+  }
+
+  if (layer.type === 'line') {
+    if (/(boundary|admin|border)/i.test(id)) {
+      return {
+        ...layer,
+        paint: {
+          ...(layer.paint || {}),
+          'line-color': '#b3b3ae',
+          'line-width': ['interpolate', ['linear'], ['zoom'], 4, 0.2, 12, 0.7, 16, 1.1],
+          'line-opacity': 0.55,
+        },
+      };
+    }
+
+    const roadWeight = classifyRoadWeight(id);
+    const roadPalette = {
+      major: {
+        color: '#262626',
+        width: ['interpolate', ['linear'], ['zoom'], 8, 0.9, 12, 1.7, 15, 2.8, 17, 4.1],
+      },
+      secondary: {
+        color: '#535353',
+        width: ['interpolate', ['linear'], ['zoom'], 8, 0.55, 12, 1.05, 15, 1.65, 17, 2.4],
+      },
+      minor: {
+        color: '#888888',
+        width: ['interpolate', ['linear'], ['zoom'], 8, 0.22, 12, 0.52, 15, 0.95, 17, 1.45],
+      },
+    };
+
+    const pick = roadPalette[roadWeight];
+
+    return {
+      ...layer,
+      paint: {
+        ...(layer.paint || {}),
+        'line-color': pick.color,
+        'line-width': pick.width,
+        'line-opacity': 0.95,
+      },
+    };
+  }
+
+  return layer;
+}
+
+async function loadMonochromeEditorialStyle() {
+  if (cachedEditorialStyle) return structuredClone(cachedEditorialStyle);
+
+  const response = await fetch(BASE_STYLE_URL);
+  if (!response.ok) throw new Error(`Style fetch failed (${response.status}).`);
+
+  const style = await response.json();
+  const curated = {
+    ...style,
+    layers: (style.layers || []).map(restyleLayer),
+  };
+
+  cachedEditorialStyle = curated;
+  return structuredClone(cachedEditorialStyle);
 }
 
 async function geocodePlace(query) {
@@ -135,9 +255,15 @@ async function updatePosterLocation(query) {
 
     map.easeTo({ center: lngLat, zoom, duration: 700 });
     ensureHeartMarker(lngLat);
-    posterTitle.textContent = result.display_name || target;
+
+    const formatted = formatPosterMeta(result, target);
+    posterTitle.textContent = formatted.title;
+    posterSubtitle.textContent = formatted.subtitle;
+    posterCoordinates.textContent = formatted.coordinates;
   } catch (error) {
-    posterTitle.textContent = `Place not found: ${target}`;
+    posterTitle.textContent = 'PLACE NOT FOUND';
+    posterSubtitle.textContent = '';
+    posterCoordinates.textContent = '';
     console.error(error);
   } finally {
     updateBtn.disabled = false;
@@ -145,21 +271,18 @@ async function updatePosterLocation(query) {
   }
 }
 
-function applySelectedStyle(styleName) {
-  const styleUrl = OPENFREEMAP_STYLES[styleName] ?? OPENFREEMAP_STYLES[DEFAULT_STYLE];
-
-  // Future customization point:
-  // swap `styleUrl` with your own hosted style JSON URL from Maputnik or another style pipeline.
-  map.setStyle(styleUrl);
+async function applySelectedStyle() {
+  const styleObject = await loadMonochromeEditorialStyle();
+  map.setStyle(styleObject);
 }
 
-function boot() {
+async function boot() {
   styleSelect.value = DEFAULT_STYLE;
   detailSelect.value = DEFAULT_DETAIL_LEVEL;
 
   map = new maplibregl.Map({
     container: 'map',
-    style: OPENFREEMAP_STYLES[DEFAULT_STYLE],
+    style: await loadMonochromeEditorialStyle(),
     center: [EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat],
     zoom: chooseZoomForPlace(EXAMPLE_LOCATIONS[DEFAULT_PLACE], DEFAULT_DETAIL_LEVEL),
     attributionControl: true,
@@ -168,10 +291,14 @@ function boot() {
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
   map.on('load', () => {
-    ensureHeartMarker([EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat]);
+    const defaultLngLat = [EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat];
+    ensureHeartMarker(defaultLngLat);
+    posterTitle.textContent = 'MADRID';
+    posterSubtitle.textContent = 'SPAIN';
+    posterCoordinates.textContent = toCoordinateLabel(EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon);
   });
 
-  styleSelect.addEventListener('change', (event) => applySelectedStyle(event.target.value));
+  styleSelect.addEventListener('change', () => applySelectedStyle());
   detailSelect.addEventListener('change', () => updatePosterLocation(placeInput.value));
   updateBtn.addEventListener('click', () => updatePosterLocation(placeInput.value));
   placeInput.addEventListener('keydown', (event) => {

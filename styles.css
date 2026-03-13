@@ -1,22 +1,20 @@
 @import url('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css');
 
 :root {
-  --poster-width: min(74vw, 780px);
+  --poster-width: min(72vw, 720px);
   --poster-ratio: 3 / 4;
-  --frame-thickness: clamp(18px, 3vw, 28px);
-  --marker-size: 52px;
+  --map-zone-height: 74%;
+  --marker-size: 64px;
 
-  --page-bg: #f1efeb;
-  --poster-bg: #fbfaf7;
-  --frame-bg: #fffefb;
-  --frame-inner: #f3f1eb;
-  --frame-border: #c7c2b7;
-  --poster-border: #cdc9bf;
-  --text-main: #171717;
-  --text-muted: #585858;
-  --control-bg: #fffefb;
-  --control-border: #bdb8ad;
-  --marker-color: #1f1f1f;
+  --page-bg: #e9e8e4;
+  --poster-bg: #f8f8f5;
+  --poster-border: #cecec9;
+  --map-border: #d9d9d3;
+  --text-main: #131313;
+  --text-muted: #4c4c4c;
+  --control-bg: #fdfdfa;
+  --control-border: #bebeb8;
+  --marker-color: #cf2029;
 }
 
 * {
@@ -35,14 +33,14 @@ body {
   min-height: inherit;
   display: grid;
   justify-items: center;
-  gap: 1.25rem;
-  padding: clamp(1.2rem, 3vw, 2.6rem);
+  gap: 1.1rem;
+  padding: clamp(1.2rem, 2.5vw, 2.3rem);
 }
 
 .controls {
   width: var(--poster-width);
   display: grid;
-  grid-template-columns: auto minmax(170px, 1fr) auto minmax(120px, 1fr) auto minmax(110px, 1fr) auto;
+  grid-template-columns: auto minmax(170px, 1fr) auto minmax(140px, 1fr) auto minmax(110px, 1fr) auto;
   gap: 0.7rem;
   align-items: center;
 }
@@ -50,7 +48,7 @@ body {
 .control-label {
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
 }
 
@@ -61,10 +59,10 @@ body {
   border: 1px solid var(--control-border);
   background: var(--control-bg);
   color: var(--text-main);
-  height: 2.55rem;
-  border-radius: 4px;
+  height: 2.5rem;
+  border-radius: 3px;
   font-family: inherit;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 #place-input,
@@ -80,8 +78,8 @@ body {
 }
 
 #update-btn {
-  padding: 0 1.2rem;
-  letter-spacing: 0.04em;
+  padding: 0 1.15rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -90,35 +88,64 @@ body {
   aspect-ratio: var(--poster-ratio);
   background: var(--poster-bg);
   border: 1px solid var(--poster-border);
-  box-shadow: 0 10px 26px rgba(20, 20, 20, 0.2), 0 2px 8px rgba(20, 20, 20, 0.15);
+  box-shadow: 0 12px 28px rgba(24, 24, 24, 0.2), 0 2px 7px rgba(24, 24, 24, 0.14);
   display: grid;
-  grid-template-rows: 1fr auto;
-  padding: clamp(1.4rem, 3vw, 2.5rem);
+  grid-template-rows: var(--map-zone-height) auto;
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  gap: clamp(1.5rem, 3vw, 2.2rem);
 }
 
 .poster-frame {
-  background: var(--frame-bg);
-  box-shadow: inset 0 0 0 var(--frame-thickness) var(--frame-inner);
-  border: 1px solid var(--frame-border);
-  padding: var(--frame-thickness);
+  border: 1px solid var(--map-border);
+  padding: clamp(0.55rem, 1.2vw, 0.9rem);
+  background: #f5f5f2;
 }
 
 .poster-map {
   width: 100%;
   height: 100%;
-  min-height: 280px;
+  min-height: 320px;
+  background: #f2f2ef;
+}
+
+.poster-map .maplibregl-control-container {
+  opacity: 0.65;
 }
 
 .poster-map .maplibregl-ctrl-attrib {
-  font-size: 11px;
+  font-size: 10px;
+}
+
+.poster-meta {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.35rem;
+  text-align: center;
+  padding: 0 0.5rem 0.1rem;
 }
 
 .poster-title {
-  margin: clamp(0.9rem, 2vw, 1.2rem) 0 0;
-  text-align: center;
-  font-size: clamp(1.35rem, 2.5vw, 1.95rem);
+  margin: 0;
+  font-size: clamp(1.4rem, 2.8vw, 2rem);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.poster-subtitle {
+  margin: 0;
+  font-size: clamp(0.72rem, 1.4vw, 0.88rem);
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: #232323;
+}
+
+.poster-coordinates {
+  margin: 0.38rem 0 0;
+  font-size: clamp(0.66rem, 1.1vw, 0.8rem);
+  letter-spacing: 0.1em;
+  color: #575757;
 }
 
 .heart-marker {
@@ -127,10 +154,10 @@ body {
   display: grid;
   place-items: center;
   color: var(--marker-color);
-  font-size: calc(var(--marker-size) * 0.62);
+  font-size: calc(var(--marker-size) * 0.7);
   line-height: 1;
-  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
-  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.7));
+  text-shadow: 0 3px 8px rgba(14, 14, 14, 0.35);
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.95));
 }
 
 @media (max-width: 980px) {
