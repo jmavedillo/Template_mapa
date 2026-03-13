@@ -128,28 +128,6 @@ body {
   text-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
 }
 
-.maplibregl-ctrl-top-right,
-.maplibregl-ctrl-top-left,
-.maplibregl-ctrl-bottom-left {
-  display: none;
-}
-
-.maplibregl-ctrl-bottom-right {
-  margin: 0;
-}
-
-.maplibregl-ctrl-attrib {
-  font-size: 0.56rem;
-  letter-spacing: 0.03em;
-  opacity: 0.76;
-  background: var(--attribution-bg) !important;
-  color: var(--attribution-color);
-}
-
-.maplibregl-ctrl-attrib a {
-  color: inherit;
-}
-
 @media (max-width: 980px) {
   .controls {
     grid-template-columns: 1fr;
