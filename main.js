@@ -27,7 +27,8 @@ const COMMUNICATION_CONTENT = {
     time: '20:34',
   },
   message: {
-    text: 'Te espero aquí. Hoy se lía.',
+    support: 'Te espero aquí.',
+    hero: 'NO FALLES',
     timestamp: '20:34',
     status: '✓✓',
   },
@@ -42,7 +43,8 @@ const placeInput = document.querySelector('#place-input');
 const styleSelect = document.querySelector('#theme-select');
 const detailSelect = document.querySelector('#detail-select');
 const updateBtn = document.querySelector('#update-btn');
-const messageBandText = document.querySelector('#message-band-text');
+const messageBandSupport = document.querySelector('#message-band-support');
+const messageBandHero = document.querySelector('#message-band-hero');
 const messageBandTime = document.querySelector('.message-band__time');
 const messageBandTicks = document.querySelector('.message-band__ticks');
 const communicationOverlay = document.querySelector('#communication-overlay');
@@ -144,7 +146,8 @@ function renderCommunicationOverlay(content) {
 
   communicationOverlay.innerHTML = blocks.join('');
 
-  if (messageBandText && content.message?.text) messageBandText.textContent = content.message.text;
+  if (messageBandSupport && content.message?.support) messageBandSupport.textContent = content.message.support;
+  if (messageBandHero && content.message?.hero) messageBandHero.textContent = content.message.hero;
   if (messageBandTime && content.message?.timestamp) messageBandTime.textContent = content.message.timestamp;
   if (messageBandTicks && content.message?.status) messageBandTicks.textContent = content.message.status;
 }
