@@ -45,8 +45,6 @@ const detailSelect = document.querySelector('#detail-select');
 const updateBtn = document.querySelector('#update-btn');
 const messageBandSupport = document.querySelector('#message-band-support');
 const messageBandHero = document.querySelector('#message-band-hero');
-const messageBandTime = document.querySelector('.message-band__time');
-const messageBandTicks = document.querySelector('.message-band__ticks');
 const communicationOverlay = document.querySelector('#communication-overlay');
 
 let map;
@@ -148,8 +146,6 @@ function renderCommunicationOverlay(content) {
 
   if (messageBandSupport && content.message?.support) messageBandSupport.textContent = content.message.support;
   if (messageBandHero && content.message?.hero) messageBandHero.textContent = content.message.hero;
-  if (messageBandTime && content.message?.timestamp) messageBandTime.textContent = content.message.timestamp;
-  if (messageBandTicks && content.message?.status) messageBandTicks.textContent = content.message.status;
 }
 
 function classifyRoadWeight(layerId) {
