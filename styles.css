@@ -146,25 +146,16 @@ body {
 }
 
 .overlay-card--place {
-  top: 1.15rem;
+  top: 30%;
   right: 1.05rem;
-}
-
-.overlay-card--place::after {
-  content: '';
-  position: absolute;
-  left: 1.1rem;
-  bottom: -9px;
-  width: 14px;
-  height: 14px;
-  background: rgba(250, 250, 247, 0.94);
-  transform: rotate(45deg);
-  box-shadow: 4px 4px 10px rgba(15, 15, 15, 0.08);
+  width: min(40%, 240px);
 }
 
 .overlay-card--time {
+  left: auto;
   right: 1.05rem;
-  top: 37%;
+  top: 54%;
+  width: min(40%, 240px);
 }
 
 .overlay-song-cover {
@@ -210,16 +201,7 @@ body {
 }
 
 .overlay-message {
-  left: 50%;
-  bottom: 1.1rem;
-  transform: translateX(-50%);
-  width: min(76%, 430px);
-  text-align: center;
-  padding: 0.9rem 1rem;
-  font-size: clamp(1rem, 2vw, 1.26rem);
-  font-weight: 700;
-  line-height: 1.2;
-  color: #101010;
+  display: none;
 }
 
 .pin-marker {
@@ -251,36 +233,45 @@ body {
   left: 13px;
 }
 
-.poster-meta {
+.message-band {
+  width: 100%;
+  border: 1px solid #cecec9;
+  background: #f4f4f1;
   display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 0.35rem;
-  text-align: center;
-  padding: 0 0.5rem 0.1rem;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 0.9rem;
+  padding: clamp(0.95rem, 1.8vw, 1.25rem) clamp(1rem, 2vw, 1.35rem);
 }
 
-.poster-title {
+.message-band__text {
   margin: 0;
-  font-size: clamp(1.4rem, 2.8vw, 2rem);
-  font-weight: 600;
-  letter-spacing: 0.32em;
+  text-align: left;
+  font-size: clamp(1.08rem, 2.2vw, 1.4rem);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #131313;
+}
+
+.message-band__meta {
+  display: grid;
+  justify-items: end;
+  gap: 0.18rem;
+  color: #4f4f4f;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.poster-subtitle {
-  margin: 0;
-  font-size: clamp(0.72rem, 1.4vw, 0.88rem);
-  letter-spacing: 0.38em;
-  text-transform: uppercase;
-  color: #232323;
+.message-band__time {
+  opacity: 0.82;
 }
 
-.poster-coordinates {
-  margin: 0.38rem 0 0;
-  font-size: clamp(0.66rem, 1.1vw, 0.8rem);
-  letter-spacing: 0.1em;
-  color: #575757;
+.message-band__ticks {
+  font-size: 0.95rem;
+  letter-spacing: -0.12em;
+  color: #3f3f3f;
 }
 
 @media (max-width: 980px) {
