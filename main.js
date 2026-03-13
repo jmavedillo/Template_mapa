@@ -12,6 +12,25 @@ const DETAIL_LEVEL_ZOOM_OFFSET = {
   'Very Close': 1.1,
 };
 
+const COMMUNICATION_CONTENT = {
+  song: {
+    coverUrl: 'https://picsum.photos/seed/album-cover/120',
+    title: 'Bad Bunny // DTMF',
+    subtitle: 'Mood: nocturnal downtown energy',
+  },
+  place: {
+    name: 'Puerta del Sol',
+    subtitle: 'Madrid Centro',
+  },
+  time: {
+    dayDate: 'Viernes 16 de marzo',
+    time: '20:34',
+  },
+  message: {
+    text: 'See you here!',
+  },
+};
+
 const EXAMPLE_LOCATIONS = {
   'Madrid, Spain': { lat: 40.4168, lon: -3.7038, display_name: 'Madrid, Spain', addresstype: 'city' },
   'Paris, France': { lat: 48.8566, lon: 2.3522, display_name: 'Paris, France', addresstype: 'city' },
@@ -24,6 +43,7 @@ const updateBtn = document.querySelector('#update-btn');
 const posterTitle = document.querySelector('#poster-title');
 const posterSubtitle = document.querySelector('#poster-subtitle');
 const posterCoordinates = document.querySelector('#poster-coordinates');
+const communicationOverlay = document.querySelector('#communication-overlay');
 
 let map;
 let centerMarker;
@@ -71,17 +91,64 @@ function chooseZoomForPlace(result, detailLevel) {
   return Math.max(13, Math.min(19, baseZoom + offset));
 }
 
-function ensureHeartMarker(lngLat) {
+function ensurePinMarker(lngLat) {
   if (!centerMarker) {
     const markerEl = document.createElement('div');
-    markerEl.className = 'heart-marker';
-    markerEl.textContent = '❤';
+    markerEl.className = 'pin-marker';
+    markerEl.innerHTML = '<div class="pin-marker__inner" aria-hidden="true"></div>';
 
-    centerMarker = new maplibregl.Marker({ element: markerEl, anchor: 'center' }).setLngLat(lngLat).addTo(map);
+    centerMarker = new maplibregl.Marker({ element: markerEl, anchor: 'bottom' }).setLngLat(lngLat).addTo(map);
     return;
   }
 
   centerMarker.setLngLat(lngLat);
+}
+
+function renderCommunicationOverlay(content) {
+  const blocks = [];
+
+  if (content.song?.title) {
+    blocks.push(`
+      <article class="overlay-card overlay-card--song" aria-label="Song card">
+        ${content.song.coverUrl ? `<img class="overlay-song-cover" src="${content.song.coverUrl}" alt="Album cover" />` : ''}
+        <div class="overlay-song-copy">
+          <p class="overlay-eyebrow">Song</p>
+          <p class="overlay-primary">${content.song.title}</p>
+          ${content.song.subtitle ? `<p class="overlay-secondary">${content.song.subtitle}</p>` : ''}
+        </div>
+      </article>
+    `);
+  }
+
+  if (content.place?.name) {
+    blocks.push(`
+      <article class="overlay-card overlay-card--place" aria-label="Place card">
+        <p class="overlay-eyebrow">Place</p>
+        <p class="overlay-primary">${content.place.name}</p>
+        ${content.place.subtitle ? `<p class="overlay-secondary">${content.place.subtitle}</p>` : ''}
+      </article>
+    `);
+  }
+
+  if (content.time?.dayDate || content.time?.time) {
+    blocks.push(`
+      <article class="overlay-card overlay-card--time" aria-label="Time card">
+        <p class="overlay-eyebrow">Time</p>
+        ${content.time.dayDate ? `<p class="overlay-primary">${content.time.dayDate}</p>` : ''}
+        ${content.time.time ? `<p class="overlay-secondary overlay-time-value">${content.time.time}</p>` : ''}
+      </article>
+    `);
+  }
+
+  if (content.message?.text) {
+    blocks.push(`
+      <article class="overlay-message" aria-label="Message block">
+        ${content.message.text}
+      </article>
+    `);
+  }
+
+  communicationOverlay.innerHTML = blocks.join('');
 }
 
 function toCoordinateLabel(lat, lon) {
@@ -254,7 +321,7 @@ async function updatePosterLocation(query) {
     const lngLat = [lng, lat];
 
     map.easeTo({ center: lngLat, zoom, duration: 700 });
-    ensureHeartMarker(lngLat);
+    ensurePinMarker(lngLat);
 
     const formatted = formatPosterMeta(result, target);
     posterTitle.textContent = formatted.title;
@@ -280,6 +347,8 @@ async function boot() {
   styleSelect.value = DEFAULT_STYLE;
   detailSelect.value = DEFAULT_DETAIL_LEVEL;
 
+  renderCommunicationOverlay(COMMUNICATION_CONTENT);
+
   map = new maplibregl.Map({
     container: 'map',
     style: await loadMonochromeEditorialStyle(),
@@ -292,7 +361,7 @@ async function boot() {
 
   map.on('load', () => {
     const defaultLngLat = [EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat];
-    ensureHeartMarker(defaultLngLat);
+    ensurePinMarker(defaultLngLat);
     posterTitle.textContent = 'MADRID';
     posterSubtitle.textContent = 'SPAIN';
     posterCoordinates.textContent = toCoordinateLabel(EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon);
