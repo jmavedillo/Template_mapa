@@ -1,324 +1,169 @@
 import './styles.css';
 
 const DEFAULT_PLACE = 'Madrid, Spain';
-const DEFAULT_THEME = 'Mono Light';
+const DEFAULT_STYLE = 'Mars Analog Atlas';
 const DEFAULT_DETAIL_LEVEL = 'Closer';
-const BASE_STYLE_URL = 'https://demotiles.maplibre.org/style.json';
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
 const DETAIL_LEVEL_ZOOM_OFFSET = {
-  Close: 0.4,
-  Closer: 1,
-  'Very Close': 1.6,
+  Close: 0.5,
+  Closer: 1.1,
+  'Very Close': 1.7,
 };
 
 const EXAMPLE_LOCATIONS = {
-  'Madrid, Spain': { lat: 40.4168, lon: -3.7038, zoom: 15.2, class: 'place', type: 'city', addresstype: 'city' },
-  'Paris, France': { lat: 48.8566, lon: 2.3522, zoom: 15.2, class: 'place', type: 'city', addresstype: 'city' },
+  'Madrid, Spain': { lat: 40.4168, lng: -3.7038, locationType: 'city' },
+  'Paris, France': { lat: 48.8566, lng: 2.3522, locationType: 'city' },
 };
 
-const POSTER_THEMES = {
-  'Mono Light': {
-    map: {
-      background: '#f5f4f1',
-      water: '#a9afb8',
-      building: '#d8d6d1',
-      buildingOutline: '#bbb8b1',
-      majorRoad: '#454545',
-      minorRoad: '#777777',
-    },
-    cssVars: {
-      '--page-bg': '#f1efeb',
-      '--poster-bg': '#fbfaf7',
-      '--poster-border': '#cdc9bf',
-      '--frame-bg': '#fffefb',
-      '--frame-inner': '#f3f1eb',
-      '--frame-border': '#c7c2b7',
-      '--text-main': '#171717',
-      '--text-muted': '#4f4f4f',
-      '--control-bg': '#fffefb',
-      '--control-border': '#bdb8ad',
-      '--marker-color': '#1f1f1f',
-      '--attribution-bg': 'rgba(255, 255, 255, 0.8)',
-      '--attribution-color': '#303030',
-    },
-  },
-  'Soft Blue': {
-    map: {
-      background: '#eef3f8',
-      water: '#94a9bc',
-      building: '#d7e0ea',
-      buildingOutline: '#b6c2cf',
-      majorRoad: '#33516d',
-      minorRoad: '#567492',
-    },
-    cssVars: {
-      '--page-bg': '#e8eff6',
-      '--poster-bg': '#f4f8fc',
-      '--poster-border': '#b8c7d6',
-      '--frame-bg': '#f7faff',
-      '--frame-inner': '#e7eef6',
-      '--frame-border': '#b6c4d4',
-      '--text-main': '#1c3045',
-      '--text-muted': '#4e657d',
-      '--control-bg': '#f8fbff',
-      '--control-border': '#afc0d1',
-      '--marker-color': '#1d4469',
-      '--attribution-bg': 'rgba(237, 245, 255, 0.82)',
-      '--attribution-color': '#234661',
-    },
-  },
-  'Mono Dark': {
-    map: {
-      background: '#1a1d20',
-      water: '#6d747d',
-      building: '#2f353c',
-      buildingOutline: '#454b53',
-      majorRoad: '#f2f2f2',
-      minorRoad: '#b8bec4',
-    },
-    cssVars: {
-      '--page-bg': '#111316',
-      '--poster-bg': '#1a1d22',
-      '--poster-border': '#505862',
-      '--frame-bg': '#1f2328',
-      '--frame-inner': '#16191d',
-      '--frame-border': '#5a616b',
-      '--text-main': '#f2f4f5',
-      '--text-muted': '#c4cad2',
-      '--control-bg': '#23282f',
-      '--control-border': '#5a616c',
-      '--marker-color': '#ffffff',
-      '--attribution-bg': 'rgba(26, 30, 36, 0.82)',
-      '--attribution-color': '#d6dce3',
-    },
-  },
+const MAP_STYLE_PRESETS = {
+  'Mars Analog Atlas': [
+    { featureType: 'all', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+    { featureType: 'administrative', elementType: 'geometry', stylers: [{ visibility: 'off' }] },
+    { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#e0c9a6' }] },
+    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#e0c9a6' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#d3b38c' }] },
+    { featureType: 'transit', elementType: 'geometry', stylers: [{ visibility: 'off' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#883b20' }] },
+  ],
+  'Urban Paper': [
+    { featureType: 'all', elementType: 'labels.text.fill', stylers: [{ color: '#343434' }] },
+    { featureType: 'all', elementType: 'labels.text.stroke', stylers: [{ color: '#f4f1ea' }, { weight: 2 }] },
+    { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f1ebdd' }] },
+    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#ebe4d6' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#7f848b' }] },
+    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#9da2a8' }] },
+    { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#b4b8bc' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#6f8698' }] },
+  ],
+  'Midnight Ink': [
+    { featureType: 'all', elementType: 'labels.text.fill', stylers: [{ color: '#f3f4f5' }] },
+    { featureType: 'all', elementType: 'labels.text.stroke', stylers: [{ color: '#15181b' }, { weight: 2 }] },
+    { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#1f252a' }] },
+    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#242b31' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#e8edf2' }] },
+    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#c2cad1' }] },
+    { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#8a939b' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#4a5b67' }] },
+  ],
 };
 
 const placeInput = document.querySelector('#place-input');
-const themeSelect = document.querySelector('#theme-select');
+const styleSelect = document.querySelector('#theme-select');
 const detailSelect = document.querySelector('#detail-select');
 const updateBtn = document.querySelector('#update-btn');
 const posterTitle = document.querySelector('#poster-title');
 
 let map;
+let geocoder;
 let centerMarker;
+let AdvancedMarkerElement;
 
-function classifyStyleLayers() {
-  const style = map.getStyle();
-  const layers = style.layers ?? [];
-  const layerGroups = {
-    background: [],
-    land: [],
-    water: [],
-    buildingFill: [],
-    buildingOutline: [],
-    roadsMajor: [],
-    roadsMinor: [],
-  };
-
-  layers.forEach((layer) => {
-    const id = layer.id.toLowerCase();
-    const sourceLayer = (layer['source-layer'] ?? '').toLowerCase();
-
-    if (layer.type === 'background') {
-      layerGroups.background.push(layer.id);
-      return;
-    }
-
-    if (layer.type === 'fill' && ['landcover', 'landuse', 'park'].some((token) => sourceLayer.includes(token) || id.includes(token))) {
-      layerGroups.land.push(layer.id);
-      return;
-    }
-
-    if (layer.type === 'fill' && (sourceLayer.includes('water') || id.includes('water'))) {
-      layerGroups.water.push(layer.id);
-      return;
-    }
-
-    if (sourceLayer.includes('building') || id.includes('building')) {
-      if (layer.type === 'fill') {
-        layerGroups.buildingFill.push(layer.id);
-      }
-      if (layer.type === 'line') {
-        layerGroups.buildingOutline.push(layer.id);
-      }
-      return;
-    }
-
-    const looksLikeRoadLayer =
-      layer.type === 'line' &&
-      (sourceLayer.includes('transportation') || sourceLayer.includes('road') || id.includes('road') || id.includes('street') || id.includes('highway'));
-
-    if (looksLikeRoadLayer) {
-      const majorToken = /(motorway|trunk|primary|secondary|major)/;
-      const minorToken = /(tertiary|street|minor|service|residential|path|track|pedestrian)/;
-
-      if (majorToken.test(id)) {
-        layerGroups.roadsMajor.push(layer.id);
-      } else if (minorToken.test(id)) {
-        layerGroups.roadsMinor.push(layer.id);
-      } else {
-        layerGroups.roadsMinor.push(layer.id);
-      }
-    }
-  });
-
-  if (!layerGroups.roadsMajor.length) {
-    layerGroups.roadsMajor = layerGroups.roadsMinor.filter((id) => /(main|route|arterial)/.test(id.toLowerCase()));
+function loadGoogleMapsScript() {
+  if (!GOOGLE_MAPS_API_KEY) {
+    throw new Error('Missing VITE_GOOGLE_MAPS_API_KEY in environment.');
   }
 
-  return layerGroups;
-}
+  return new Promise((resolve, reject) => {
+    if (window.google?.maps?.importLibrary) {
+      resolve();
+      return;
+    }
 
-function initializeMapEngine(containerId, initialView) {
-  return new maplibregl.Map({
-    container: containerId,
-    style: BASE_STYLE_URL,
-    center: [initialView.lon, initialView.lat],
-    zoom: initialView.zoom,
-    attributionControl: true,
-    dragRotate: false,
-    touchZoomRotate: false,
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&v=weekly`;
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error('Google Maps JavaScript API failed to load.'));
+    document.head.appendChild(script);
   });
 }
 
-function applyPosterTheme(themeName) {
-  const theme = POSTER_THEMES[themeName] ?? POSTER_THEMES[DEFAULT_THEME];
+function chooseZoomForPlace(result, detailLevel) {
+  // Strong urban-detail bias for poster readability.
+  let baseZoom = 15.4;
 
-  Object.entries(theme.cssVars).forEach(([key, value]) => {
-    document.documentElement.style.setProperty(key, value);
-  });
+  const resultType = result.types ?? [];
 
-  if (!map || !map.isStyleLoaded()) {
-    return;
-  }
-
-  // We start from a complete OpenMapTiles style and then override key cartography layers.
-  const layers = classifyStyleLayers();
-
-  layers.background.forEach((id) => map.setPaintProperty(id, 'background-color', theme.map.background));
-  layers.land.forEach((id) => map.setPaintProperty(id, 'fill-color', theme.map.background));
-
-  // Water needs strong contrast so the poster never looks washed out.
-  layers.water.forEach((id) => {
-    map.setPaintProperty(id, 'fill-color', theme.map.water);
-    map.setPaintProperty(id, 'fill-opacity', 0.94);
-  });
-
-  // Buildings provide urban texture while staying subtle.
-  layers.buildingFill.forEach((id) => {
-    map.setPaintProperty(id, 'fill-color', theme.map.building);
-    map.setPaintProperty(id, 'fill-opacity', ['interpolate', ['linear'], ['zoom'], 13, 0.25, 15, 0.55, 17, 0.9]);
-  });
-  layers.buildingOutline.forEach((id) => {
-    map.setPaintProperty(id, 'line-color', theme.map.buildingOutline);
-    map.setPaintProperty(id, 'line-width', ['interpolate', ['linear'], ['zoom'], 13, 0.2, 16, 0.55, 18, 0.8]);
-  });
-
-  // Road hierarchy is the core graphic hierarchy: major roads are thicker and darker than minor roads.
-  layers.roadsMajor.forEach((id) => {
-    map.setPaintProperty(id, 'line-color', theme.map.majorRoad);
-    map.setPaintProperty(id, 'line-opacity', 1);
-    map.setPaintProperty(id, 'line-width', ['interpolate', ['linear'], ['zoom'], 12, 1.6, 14.5, 3.4, 16.5, 6.2, 18, 8.8]);
-  });
-  layers.roadsMinor.forEach((id) => {
-    map.setPaintProperty(id, 'line-color', theme.map.minorRoad);
-    map.setPaintProperty(id, 'line-opacity', 0.95);
-    map.setPaintProperty(id, 'line-width', ['interpolate', ['linear'], ['zoom'], 12, 0.8, 14.5, 1.8, 16.5, 3.1, 18, 4.3]);
-  });
-}
-
-function createCenterMarker(lat, lon) {
-  const markerEl = document.createElement('div');
-  markerEl.className = 'heart-marker';
-  markerEl.textContent = '❤';
-  return new maplibregl.Marker({ element: markerEl, anchor: 'center' }).setLngLat([lon, lat]);
-}
-
-function chooseZoomForPlace(location, detailLevel) {
-  // Strong urban-detail bias: never start with a regional/country composition.
-  let baseZoom = 15.1;
-
-  const addresstype = location.addresstype ?? '';
-  const placeClass = location.class ?? '';
-  const placeType = location.type ?? '';
-
-  const display = (location.display_name ?? '').toLowerCase();
-  const isUrbanPoi =
-    ['amenity', 'tourism', 'shop', 'leisure', 'building', 'highway'].includes(placeClass) ||
-    ['house', 'road', 'street', 'school'].includes(addresstype) ||
-    /(school|street|avenue|plaza|station|hospital|university)/.test(display);
-
-  if (isUrbanPoi) {
-    baseZoom = 16.9;
-  } else if (['suburb', 'neighbourhood', 'quarter'].includes(addresstype) || ['suburb', 'neighbourhood'].includes(placeType)) {
-    baseZoom = 16.1;
-  } else if (['city', 'town', 'municipality'].includes(addresstype) || ['city', 'town', 'administrative'].includes(placeType)) {
-    baseZoom = 15.2;
-  } else if (['country', 'state', 'region'].includes(addresstype) || ['country', 'state'].includes(placeType)) {
-    baseZoom = 14.7;
+  if (resultType.includes('street_address') || resultType.includes('premise') || resultType.includes('point_of_interest')) {
+    baseZoom = 17.2;
+  } else if (resultType.includes('neighborhood') || resultType.includes('sublocality')) {
+    baseZoom = 16.4;
+  } else if (resultType.includes('locality')) {
+    baseZoom = 15.6;
   }
 
   const offset = DETAIL_LEVEL_ZOOM_OFFSET[detailLevel] ?? DETAIL_LEVEL_ZOOM_OFFSET[DEFAULT_DETAIL_LEVEL];
-  return Math.max(14.2, Math.min(18.8, baseZoom + offset));
+  return Math.max(14.4, Math.min(19, baseZoom + offset));
+}
+
+function createHeartMarker(position) {
+  const markerEl = document.createElement('div');
+  markerEl.className = 'heart-marker';
+  markerEl.textContent = '❤';
+
+  return new AdvancedMarkerElement({
+    map,
+    position,
+    content: markerEl,
+    title: 'Poster center marker',
+  });
+}
+
+function applySelectedStyle(styleName) {
+  const styles = MAP_STYLE_PRESETS[styleName] ?? MAP_STYLE_PRESETS[DEFAULT_STYLE];
+
+  // Phase 1: embedded JSON styling via MapOptions.styles.
+  // Future migration point: replace this with mapId cloud styling (and remove styles arrays).
+  map.setOptions({ styles });
 }
 
 async function geocodePlace(query) {
   if (EXAMPLE_LOCATIONS[query]) {
-    return EXAMPLE_LOCATIONS[query];
+    return {
+      latLng: EXAMPLE_LOCATIONS[query],
+      types: ['locality'],
+      formatted_address: query,
+    };
   }
 
-  const endpoint = new URL('https://nominatim.openstreetmap.org/search');
-  endpoint.searchParams.set('q', query);
-  endpoint.searchParams.set('format', 'jsonv2');
-  endpoint.searchParams.set('limit', '1');
-  endpoint.searchParams.set('addressdetails', '1');
+  return new Promise((resolve, reject) => {
+    geocoder.geocode({ address: query }, (results, status) => {
+      if (status !== 'OK' || !results?.length) {
+        reject(new Error('No place found. Try a district, neighborhood, or address.'));
+        return;
+      }
 
-  const response = await fetch(endpoint, {
-    headers: {
-      Accept: 'application/json',
-    },
+      const topResult = results[0];
+      resolve({
+        latLng: topResult.geometry.location,
+        types: topResult.types,
+        formatted_address: topResult.formatted_address,
+      });
+    });
   });
-
-  if (!response.ok) {
-    throw new Error('Geocoding lookup failed.');
-  }
-
-  const data = await response.json();
-
-  if (!data.length) {
-    throw new Error('No place found. Try a district, neighborhood, or address.');
-  }
-
-  return {
-    ...data[0],
-    lat: Number(data[0].lat),
-    lon: Number(data[0].lon),
-  };
 }
 
 async function updatePosterLocation(query) {
   const target = query.trim() || DEFAULT_PLACE;
-
   updateBtn.disabled = true;
   updateBtn.textContent = 'Updating...';
 
   try {
-    const location = await geocodePlace(target);
-    const zoom = chooseZoomForPlace(location, detailSelect.value);
+    const result = await geocodePlace(target);
+    const zoom = chooseZoomForPlace(result, detailSelect.value);
 
-    map.easeTo({
-      center: [location.lon, location.lat],
-      zoom,
-      duration: 900,
-    });
+    map.panTo(result.latLng);
+    map.setZoom(zoom);
 
     if (centerMarker) {
-      centerMarker.remove();
+      centerMarker.map = null;
     }
 
-    centerMarker = createCenterMarker(location.lat, location.lon).addTo(map);
-    posterTitle.textContent = target;
+    centerMarker = createHeartMarker(result.latLng);
+    posterTitle.textContent = result.formatted_address;
   } catch (error) {
     posterTitle.textContent = `Place not found: ${target}`;
     console.error(error);
@@ -328,20 +173,33 @@ async function updatePosterLocation(query) {
   }
 }
 
-function boot() {
-  const initialView = EXAMPLE_LOCATIONS[DEFAULT_PLACE];
-  themeSelect.value = DEFAULT_THEME;
+async function boot() {
+  await loadGoogleMapsScript();
+
+  const { Map } = await google.maps.importLibrary('maps');
+  const { Geocoder } = await google.maps.importLibrary('geocoding');
+  ({ AdvancedMarkerElement } = await google.maps.importLibrary('marker'));
+
+  geocoder = new Geocoder();
+
+  styleSelect.value = DEFAULT_STYLE;
   detailSelect.value = DEFAULT_DETAIL_LEVEL;
 
-  map = initializeMapEngine('map', initialView);
-
-  map.on('load', () => {
-    applyPosterTheme(DEFAULT_THEME);
-    centerMarker = createCenterMarker(initialView.lat, initialView.lon).addTo(map);
+  map = new Map(document.querySelector('#map'), {
+    center: EXAMPLE_LOCATIONS[DEFAULT_PLACE],
+    zoom: chooseZoomForPlace({ types: ['locality'] }, DEFAULT_DETAIL_LEVEL),
+    disableDefaultUI: true,
+    draggable: true,
+    gestureHandling: 'greedy',
+    // Phase 1 uses local embedded JSON styles only.
+    // Future migration point: replace `styles` with a cloud-managed `mapId`.
+    styles: MAP_STYLE_PRESETS[DEFAULT_STYLE],
   });
 
-  themeSelect.addEventListener('change', (event) => {
-    applyPosterTheme(event.target.value);
+  centerMarker = createHeartMarker(EXAMPLE_LOCATIONS[DEFAULT_PLACE]);
+
+  styleSelect.addEventListener('change', (event) => {
+    applySelectedStyle(event.target.value);
   });
 
   detailSelect.addEventListener('change', () => {
@@ -356,4 +214,7 @@ function boot() {
   });
 }
 
-boot();
+boot().catch((error) => {
+  console.error(error);
+  posterTitle.textContent = 'Google Maps failed to initialize';
+});
