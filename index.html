@@ -29,13 +29,34 @@
       <article class="poster" aria-label="Urban map communication preview">
         <div class="poster-frame">
           <div id="map" class="poster-map" role="img" aria-label="Map preview"></div>
-          <section id="communication-overlay" class="communication-overlay" aria-label="Communication overlay"></section>
+          <section id="communication-overlay" class="communication-overlay" aria-label="Communication overlay">
+            <article id="song-card" class="overlay-card overlay-card--song" aria-label="Song card">
+              <img id="song-cover" class="overlay-song-cover" alt="Album cover" />
+              <div class="overlay-song-copy">
+                <p class="overlay-eyebrow">Song</p>
+                <p id="song-title" class="overlay-primary"></p>
+                <p id="song-mood" class="overlay-secondary"></p>
+              </div>
+            </article>
+
+            <article id="place-card" class="overlay-card overlay-card--place" aria-label="Place card">
+              <p class="overlay-eyebrow">Place</p>
+              <p id="place-title" class="overlay-primary"></p>
+              <p id="place-subtitle" class="overlay-secondary"></p>
+            </article>
+
+            <article id="time-card" class="overlay-card overlay-card--time" aria-label="Time card">
+              <p class="overlay-eyebrow">Time</p>
+              <p id="time-date" class="overlay-primary"></p>
+              <p id="time-value" class="overlay-secondary overlay-time-value"></p>
+            </article>
+          </section>
         </div>
 
-        <section class="message-band" aria-label="Message band">
+        <section id="message-band" class="message-band" aria-label="Message band">
           <div class="message-band__copy">
-            <p id="message-band-support" class="message-band__support">Nos vemos allí.</p>
-            <p id="message-band-hero" class="message-band__hero">HOY SE LÍA</p>
+            <p id="message-band-support" class="message-band__support"></p>
+            <p id="message-band-hero" class="message-band__hero"></p>
           </div>
         </section>
       </article>

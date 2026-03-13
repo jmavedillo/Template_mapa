@@ -1,7 +1,6 @@
 import './styles.css';
 import maplibregl from 'https://esm.sh/maplibre-gl@4.7.1';
 
-const DEFAULT_PLACE = 'Madrid, Spain';
 const DEFAULT_STYLE = 'Monochrome Editorial';
 const DEFAULT_DETAIL_LEVEL = 'Closer';
 const BASE_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
@@ -12,30 +11,146 @@ const DETAIL_LEVEL_ZOOM_OFFSET = {
   'Very Close': 1.1,
 };
 
-const COMMUNICATION_CONTENT = {
-  song: {
-    coverUrl: 'https://picsum.photos/seed/album-cover/120',
-    title: 'Bad Bunny // DTMF',
-    subtitle: 'Mood: nocturnal downtown energy',
+const TEMPLATE_PRESETS = {
+  fullExample: {
+    mapQuery: 'Puerta del Sol, Madrid',
+    song: {
+      title: 'DTMF',
+      artist: 'Bad Bunny',
+      mood: 'nocturnal downtown energy',
+      coverUrl: 'https://picsum.photos/seed/album-cover/120',
+    },
+    place: {
+      title: 'Puerta del Sol',
+      subtitle: 'Madrid Centro',
+    },
+    time: {
+      dateText: 'Viernes 16 de marzo',
+      timeText: '20:34',
+    },
+    message: {
+      intro: 'Te espero aquí.',
+      main: 'NO FALLES',
+    },
+    marker: {
+      type: 'pin',
+    },
   },
-  place: {
-    name: 'Puerta del Sol',
-    subtitle: 'Madrid Centro',
+  noSong: {
+    mapQuery: 'Puerta del Sol, Madrid',
+    place: {
+      title: 'Puerta del Sol',
+      subtitle: 'Madrid Centro',
+    },
+    time: {
+      dateText: 'Viernes 16 de marzo',
+      timeText: '20:34',
+    },
+    message: {
+      intro: 'Te espero aquí.',
+      main: 'NO FALLES',
+    },
+    marker: {
+      type: 'pin',
+    },
   },
-  time: {
-    dayDate: 'Viernes 16 de marzo',
-    time: '20:34',
+  noTime: {
+    mapQuery: 'Puerta del Sol, Madrid',
+    song: {
+      title: 'DTMF',
+      artist: 'Bad Bunny',
+      mood: 'nocturnal downtown energy',
+      coverUrl: 'https://picsum.photos/seed/album-cover/120',
+    },
+    place: {
+      title: 'Puerta del Sol',
+      subtitle: 'Madrid Centro',
+    },
+    message: {
+      intro: 'Te espero aquí.',
+      main: 'NO FALLES',
+    },
+    marker: {
+      type: 'pin',
+    },
   },
-  message: {
-    support: 'Te espero aquí.',
-    hero: 'NO FALLES',
-    timestamp: '20:34',
-    status: '✓✓',
+  noPlaceSubtitle: {
+    mapQuery: 'Puerta del Sol, Madrid',
+    song: {
+      title: 'DTMF',
+      artist: 'Bad Bunny',
+      mood: 'nocturnal downtown energy',
+      coverUrl: 'https://picsum.photos/seed/album-cover/120',
+    },
+    place: {
+      title: 'Puerta del Sol',
+    },
+    time: {
+      dateText: 'Viernes 16 de marzo',
+      timeText: '20:34',
+    },
+    message: {
+      intro: 'Te espero aquí.',
+      main: 'NO FALLES',
+    },
+    marker: {
+      type: 'pin',
+    },
+  },
+  shortMessage: {
+    mapQuery: 'Puerta del Sol, Madrid',
+    song: {
+      title: 'DTMF',
+      artist: 'Bad Bunny',
+      mood: 'nocturnal downtown energy',
+      coverUrl: 'https://picsum.photos/seed/album-cover/120',
+    },
+    place: {
+      title: 'Puerta del Sol',
+      subtitle: 'Madrid Centro',
+    },
+    time: {
+      dateText: 'Viernes 16 de marzo',
+      timeText: '20:34',
+    },
+    message: {
+      main: 'VEN',
+    },
+    marker: {
+      type: 'pin',
+    },
+  },
+  longerMessage: {
+    mapQuery: 'Puerta del Sol, Madrid',
+    song: {
+      title: 'DTMF',
+      artist: 'Bad Bunny',
+      mood: 'nocturnal downtown energy',
+      coverUrl: 'https://picsum.photos/seed/album-cover/120',
+    },
+    place: {
+      title: 'Puerta del Sol',
+      subtitle: 'Madrid Centro',
+    },
+    time: {
+      dateText: 'Viernes 16 de marzo',
+      timeText: '20:34',
+    },
+    message: {
+      intro: 'Te espero en el punto exacto del mapa cuando caiga el sol.',
+      main: 'NO LLEGUES TARDE, ESTA NOCHE ES CLAVE',
+    },
+    marker: {
+      type: 'pin',
+    },
   },
 };
 
+const templateData = TEMPLATE_PRESETS.fullExample;
+
 const EXAMPLE_LOCATIONS = {
   'Madrid, Spain': { lat: 40.4168, lon: -3.7038, display_name: 'Madrid, Spain', addresstype: 'city' },
+  'Puerta del Sol, Madrid': { lat: 40.4169, lon: -3.7035, display_name: 'Puerta del Sol, Madrid', addresstype: 'amenity' },
   'Paris, France': { lat: 48.8566, lon: 2.3522, display_name: 'Paris, France', addresstype: 'city' },
 };
 
@@ -43,13 +158,72 @@ const placeInput = document.querySelector('#place-input');
 const styleSelect = document.querySelector('#theme-select');
 const detailSelect = document.querySelector('#detail-select');
 const updateBtn = document.querySelector('#update-btn');
+
+const songCard = document.querySelector('#song-card');
+const songCover = document.querySelector('#song-cover');
+const songTitle = document.querySelector('#song-title');
+const songMood = document.querySelector('#song-mood');
+const placeCard = document.querySelector('#place-card');
+const placeTitle = document.querySelector('#place-title');
+const placeSubtitle = document.querySelector('#place-subtitle');
+const timeCard = document.querySelector('#time-card');
+const timeDate = document.querySelector('#time-date');
+const timeValue = document.querySelector('#time-value');
+const messageBand = document.querySelector('#message-band');
 const messageBandSupport = document.querySelector('#message-band-support');
 const messageBandHero = document.querySelector('#message-band-hero');
-const communicationOverlay = document.querySelector('#communication-overlay');
 
 let map;
 let centerMarker;
 let cachedEditorialStyle;
+
+function hasText(value) {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function setText(element, value) {
+  const text = hasText(value) ? value.trim() : '';
+  element.textContent = text;
+  element.hidden = text.length === 0;
+}
+
+function renderTemplate(data) {
+  const songLine = [data.song?.title, data.song?.artist].filter(hasText).join(' · ');
+  const songExists = hasText(songLine) || hasText(data.song?.mood) || hasText(data.song?.coverUrl);
+  songCard.hidden = !songExists;
+  if (songExists) {
+    setText(songTitle, songLine);
+    setText(songMood, hasText(data.song?.mood) ? `Mood: ${data.song.mood.trim()}` : '');
+
+    if (hasText(data.song?.coverUrl)) {
+      songCover.src = data.song.coverUrl.trim();
+      songCover.hidden = false;
+    } else {
+      songCover.removeAttribute('src');
+      songCover.hidden = true;
+    }
+  }
+
+  const placeExists = hasText(data.place?.title) || hasText(data.place?.subtitle);
+  placeCard.hidden = !placeExists;
+  if (placeExists) {
+    setText(placeTitle, data.place?.title);
+    setText(placeSubtitle, data.place?.subtitle);
+  }
+
+  const timeExists = hasText(data.time?.dateText) || hasText(data.time?.timeText);
+  timeCard.hidden = !timeExists;
+  if (timeExists) {
+    setText(timeDate, data.time?.dateText);
+    setText(timeValue, data.time?.timeText);
+  }
+
+  setText(messageBandSupport, data.message?.intro);
+  setText(messageBandHero, data.message?.main);
+
+  const hasMessage = hasText(data.message?.intro) || hasText(data.message?.main);
+  messageBand.hidden = !hasMessage;
+}
 
 function chooseZoomForPlace(result, detailLevel) {
   const broadAreaTypes = new Set(['country', 'state', 'region', 'county']);
@@ -94,6 +268,8 @@ function chooseZoomForPlace(result, detailLevel) {
 }
 
 function ensurePinMarker(lngLat) {
+  if (templateData.marker?.type !== 'pin') return;
+
   if (!centerMarker) {
     const markerEl = document.createElement('div');
     markerEl.className = 'pin-marker';
@@ -104,48 +280,6 @@ function ensurePinMarker(lngLat) {
   }
 
   centerMarker.setLngLat(lngLat);
-}
-
-function renderCommunicationOverlay(content) {
-  const blocks = [];
-
-  if (content.song?.title) {
-    blocks.push(`
-      <article class="overlay-card overlay-card--song" aria-label="Song card">
-        ${content.song.coverUrl ? `<img class="overlay-song-cover" src="${content.song.coverUrl}" alt="Album cover" />` : ''}
-        <div class="overlay-song-copy">
-          <p class="overlay-eyebrow">Song</p>
-          <p class="overlay-primary">${content.song.title}</p>
-          ${content.song.subtitle ? `<p class="overlay-secondary">${content.song.subtitle}</p>` : ''}
-        </div>
-      </article>
-    `);
-  }
-
-  if (content.place?.name) {
-    blocks.push(`
-      <article class="overlay-card overlay-card--place" aria-label="Place card">
-        <p class="overlay-eyebrow">Place</p>
-        <p class="overlay-primary">${content.place.name}</p>
-        ${content.place.subtitle ? `<p class="overlay-secondary">${content.place.subtitle}</p>` : ''}
-      </article>
-    `);
-  }
-
-  if (content.time?.dayDate || content.time?.time) {
-    blocks.push(`
-      <article class="overlay-card overlay-card--time" aria-label="Time card">
-        <p class="overlay-eyebrow">Time</p>
-        ${content.time.dayDate ? `<p class="overlay-primary">${content.time.dayDate}</p>` : ''}
-        ${content.time.time ? `<p class="overlay-secondary overlay-time-value">${content.time.time}</p>` : ''}
-      </article>
-    `);
-  }
-
-  communicationOverlay.innerHTML = blocks.join('');
-
-  if (messageBandSupport && content.message?.support) messageBandSupport.textContent = content.message.support;
-  if (messageBandHero && content.message?.hero) messageBandHero.textContent = content.message.hero;
 }
 
 function classifyRoadWeight(layerId) {
@@ -279,7 +413,7 @@ async function geocodePlace(query) {
 }
 
 async function updatePosterLocation(query) {
-  const target = query.trim() || DEFAULT_PLACE;
+  const target = query.trim() || templateData.mapQuery;
   updateBtn.disabled = true;
   updateBtn.textContent = 'Updating...';
 
@@ -294,7 +428,6 @@ async function updatePosterLocation(query) {
 
     map.easeTo({ center: lngLat, zoom, duration: 700 });
     ensurePinMarker(lngLat);
-
   } catch (error) {
     console.error(error);
   } finally {
@@ -311,21 +444,24 @@ async function applySelectedStyle() {
 async function boot() {
   styleSelect.value = DEFAULT_STYLE;
   detailSelect.value = DEFAULT_DETAIL_LEVEL;
+  placeInput.value = templateData.mapQuery;
 
-  renderCommunicationOverlay(COMMUNICATION_CONTENT);
+  renderTemplate(templateData);
+
+  const defaultLocation = await geocodePlace(templateData.mapQuery);
 
   map = new maplibregl.Map({
     container: 'map',
     style: await loadMonochromeEditorialStyle(),
-    center: [EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat],
-    zoom: chooseZoomForPlace(EXAMPLE_LOCATIONS[DEFAULT_PLACE], DEFAULT_DETAIL_LEVEL),
+    center: [Number(defaultLocation.lon), Number(defaultLocation.lat)],
+    zoom: chooseZoomForPlace(defaultLocation, DEFAULT_DETAIL_LEVEL),
     attributionControl: true,
   });
 
   map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
   map.on('load', () => {
-    const defaultLngLat = [EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat];
+    const defaultLngLat = [Number(defaultLocation.lon), Number(defaultLocation.lat)];
     ensurePinMarker(defaultLngLat);
   });
 
