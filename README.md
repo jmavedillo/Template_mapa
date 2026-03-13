@@ -1,24 +1,32 @@
 # Urban map poster prototype
 
-A Vite + vanilla JavaScript prototype focused on **high-legibility urban cartography first**, now powered by the **Google Maps JavaScript API**.
+A Vite + vanilla JavaScript prototype focused on **high-legibility urban cartography first**, now powered by **MapLibre GL JS + OpenFreeMap**.
 
 ## Run locally
 
 ```bash
 npm install
-VITE_GOOGLE_MAPS_API_KEY=your_key_here npm run dev
+npm run dev
 ```
 
 ## Files
 
 - `index.html` – controls + poster shell
 - `styles.css` – poster layout and UI chrome
-- `main.js` – Google Maps loading, Geocoder lookup, style presets, zoom heuristics, Advanced Marker heart pin
+- `main.js` – MapLibre setup, OpenFreeMap style switching, Nominatim geocoding, zoom heuristics, centered heart marker
 
-## Current styling phase (embedded JSON only)
+## OpenFreeMap styles in use
 
-- Uses local style preset arrays applied with `map.setOptions({ styles: ... })`
-- Includes 3 selectable presets (including Mars Analog Atlas)
-- Contains explicit comments where this will later migrate to `mapId` cloud styling
+The style selector currently switches between these hosted OpenFreeMap styles:
 
-> Important: this phase intentionally does **not** combine local embedded JSON styling and cloud map styling.
+- `https://tiles.openfreemap.org/styles/liberty`
+- `https://tiles.openfreemap.org/styles/positron`
+- `https://tiles.openfreemap.org/styles/bright`
+
+## Where to replace with a custom hosted style later
+
+In `main.js`, edit the `OPENFREEMAP_STYLES` object. Replace any hosted URL with your own hosted style JSON URL (for example, a Maputnik-edited style you host yourself).
+
+## Attribution
+
+Attribution must remain visible in the rendered map to comply with OpenStreetMap/OpenFreeMap data and style terms.
