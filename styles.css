@@ -13,6 +13,7 @@
   --text-muted: #4c4c4c;
   --control-bg: #fdfdfa;
   --control-border: #bebeb8;
+  --accent-red: #d7747d;
 }
 
 * {
@@ -88,7 +89,7 @@ body {
   border: 1px solid var(--poster-border);
   box-shadow: 0 12px 28px rgba(24, 24, 24, 0.2), 0 2px 7px rgba(24, 24, 24, 0.14);
   display: grid;
-  grid-template-rows: var(--map-zone-height) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   padding: clamp(1.5rem, 3vw, 2.5rem);
   gap: clamp(1.5rem, 3vw, 2.2rem);
 }
@@ -126,8 +127,9 @@ body {
 .overlay-message {
   position: absolute;
   background: rgba(250, 250, 247, 0.94);
+  border: 1.5px solid rgba(20, 20, 20, 0.62);
   border-radius: 12px;
-  box-shadow: 0 9px 24px rgba(15, 15, 15, 0.18);
+  box-shadow: 0 8px 20px rgba(15, 15, 15, 0.15);
 }
 
 .overlay-card {
@@ -219,7 +221,7 @@ body {
   height: 44px;
   border-radius: 50% 50% 50% 0;
   transform: rotate(-45deg);
-  background: #d3212c;
+  background: var(--accent-red);
 }
 
 .pin-marker__inner::before {
@@ -235,21 +237,22 @@ body {
 
 .message-band {
   width: 100%;
+  align-self: start;
   border: 1px solid #cecec9;
   background: #f4f4f1;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr;
   align-items: start;
-  gap: 0.55rem;
-  padding: clamp(0.56rem, 1.05vw, 0.72rem) clamp(1rem, 2vw, 1.35rem) clamp(0.46rem, 0.9vw, 0.62rem);
+  gap: 0.16rem;
+  padding: clamp(0.24rem, 0.48vw, 0.34rem) clamp(0.84rem, 1.55vw, 1.08rem) clamp(0.2rem, 0.4vw, 0.3rem);
 }
 
 .message-band__copy {
   text-align: left;
   display: grid;
   align-content: start;
-  gap: clamp(0.14rem, 0.45vw, 0.32rem);
-  max-width: 38ch;
+  gap: clamp(0.06rem, 0.2vw, 0.14rem);
+  max-width: 34ch;
 }
 
 .message-band__support,
@@ -268,37 +271,16 @@ body {
 }
 
 .message-band__hero {
-  font-family: 'Arial Black', Impact, Haettenschweiler, 'Segoe UI Black', sans-serif;
+  font-family: 'Avenir Next Condensed', 'Franklin Gothic Heavy', 'Arial Narrow', 'Arial Black', 'Inter', sans-serif;
   font-size: clamp(2.1rem, 5.5vw, 3.35rem);
-  line-height: 0.88;
+  line-height: 0.84;
   font-weight: 900;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #0f0f0f;
+  color: var(--accent-red);
 }
 
-.message-band__meta {
-  display: grid;
-  justify-items: end;
-  align-self: start;
-  gap: 0.1rem;
-  color: #444444;
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding-top: 0.08rem;
-}
 
-.message-band__time {
-  opacity: 0.85;
-}
-
-.message-band__ticks {
-  font-size: 1.1rem;
-  font-weight: 700;
-  letter-spacing: -0.08em;
-  color: #202020;
-}
 
 @media (max-width: 980px) {
   .controls {
@@ -316,4 +298,6 @@ body {
   .overlay-card {
     max-width: min(58%, 260px);
   }
+
+
 }
