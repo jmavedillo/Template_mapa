@@ -27,7 +27,9 @@ const COMMUNICATION_CONTENT = {
     time: '20:34',
   },
   message: {
-    text: 'See you here!',
+    text: 'Te espero aquí. Hoy se lía.',
+    timestamp: '20:34',
+    status: '✓✓',
   },
 };
 
@@ -40,9 +42,9 @@ const placeInput = document.querySelector('#place-input');
 const styleSelect = document.querySelector('#theme-select');
 const detailSelect = document.querySelector('#detail-select');
 const updateBtn = document.querySelector('#update-btn');
-const posterTitle = document.querySelector('#poster-title');
-const posterSubtitle = document.querySelector('#poster-subtitle');
-const posterCoordinates = document.querySelector('#poster-coordinates');
+const messageBandText = document.querySelector('#message-band-text');
+const messageBandTime = document.querySelector('.message-band__time');
+const messageBandTicks = document.querySelector('.message-band__ticks');
 const communicationOverlay = document.querySelector('#communication-overlay');
 
 let map;
@@ -140,40 +142,11 @@ function renderCommunicationOverlay(content) {
     `);
   }
 
-  if (content.message?.text) {
-    blocks.push(`
-      <article class="overlay-message" aria-label="Message block">
-        ${content.message.text}
-      </article>
-    `);
-  }
-
   communicationOverlay.innerHTML = blocks.join('');
-}
 
-function toCoordinateLabel(lat, lon) {
-  const northSouth = lat >= 0 ? 'N' : 'S';
-  const eastWest = lon >= 0 ? 'E' : 'W';
-  return `${Math.abs(lat).toFixed(4)}°${northSouth} / ${Math.abs(lon).toFixed(4)}°${eastWest}`;
-}
-
-function formatPosterMeta(result, fallbackInput) {
-  const address = result.address || {};
-  const titleCandidate =
-    address.city ||
-    address.town ||
-    address.village ||
-    address.municipality ||
-    address.county ||
-    result.name ||
-    fallbackInput;
-
-  const countryCandidate = address.country || '';
-  return {
-    title: titleCandidate.toUpperCase(),
-    subtitle: countryCandidate.toUpperCase(),
-    coordinates: toCoordinateLabel(Number(result.lat), Number(result.lon)),
-  };
+  if (messageBandText && content.message?.text) messageBandText.textContent = content.message.text;
+  if (messageBandTime && content.message?.timestamp) messageBandTime.textContent = content.message.timestamp;
+  if (messageBandTicks && content.message?.status) messageBandTicks.textContent = content.message.status;
 }
 
 function classifyRoadWeight(layerId) {
@@ -323,14 +296,7 @@ async function updatePosterLocation(query) {
     map.easeTo({ center: lngLat, zoom, duration: 700 });
     ensurePinMarker(lngLat);
 
-    const formatted = formatPosterMeta(result, target);
-    posterTitle.textContent = formatted.title;
-    posterSubtitle.textContent = formatted.subtitle;
-    posterCoordinates.textContent = formatted.coordinates;
   } catch (error) {
-    posterTitle.textContent = 'PLACE NOT FOUND';
-    posterSubtitle.textContent = '';
-    posterCoordinates.textContent = '';
     console.error(error);
   } finally {
     updateBtn.disabled = false;
@@ -362,9 +328,6 @@ async function boot() {
   map.on('load', () => {
     const defaultLngLat = [EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat];
     ensurePinMarker(defaultLngLat);
-    posterTitle.textContent = 'MADRID';
-    posterSubtitle.textContent = 'SPAIN';
-    posterCoordinates.textContent = toCoordinateLabel(EXAMPLE_LOCATIONS[DEFAULT_PLACE].lat, EXAMPLE_LOCATIONS[DEFAULT_PLACE].lon);
   });
 
   styleSelect.addEventListener('change', () => applySelectedStyle());
